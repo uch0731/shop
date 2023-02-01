@@ -9,14 +9,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
-public interface ItemRepository extends JpaRepository<Item, Long>, QuerydslPredicateExecutor<Item>  {
+public interface ItemRepository extends JpaRepository<Item, Long>, QuerydslPredicateExecutor<Item> {
+
     List<Item> findByItemNm(String itemNm);
+
     List<Item> findByItemNmOrItemDetail(String itemNm, String itemDetail);
+
     List<Item> findByPriceLessThan(Integer price);
+
     List<Item> findByPriceLessThanOrderByPriceDesc(Integer price);
-    List<Item> findByPriceLessThanOrderByPriceAsc(Integer price);
 
     @Query("select i from Item i where i.itemDetail like " +
             "%:itemDetail% order by i.price desc")
@@ -25,4 +27,5 @@ public interface ItemRepository extends JpaRepository<Item, Long>, QuerydslPredi
     @Query(value="select * from item i where i.item_detail like " +
             "%:itemDetail% order by i.price desc", nativeQuery = true)
     List<Item> findByItemDetailByNative(@Param("itemDetail") String itemDetail);
+
 }
