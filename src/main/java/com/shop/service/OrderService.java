@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import org.thymeleaf.util.StringUtils;
 
 @Service
 @Transactional
@@ -73,6 +74,45 @@ public class OrderService {
         }
 
         return new PageImpl<OrderHistDto>(orderHistDtos, pageable, totalCount);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean validateOrder(Long orderId, String email){
+        Member curMember = memberRepository.findByEmail(email);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(EntityNotFoundException::new);
+        Member savedMember = order.getMember();
+
+        if(!StringUtils.equals(curMember.getEmail(), savedMember.getEmail())){
+            return false;
+        }
+
+        return true;
+    }
+
+    public void cancelOrder(Long orderId){
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(EntityNotFoundException::new);
+        order.cancelOrder();
+    }
+
+    public Long orders(List<OrderDto> orderDtoList, String email){
+
+        Member member = memberRepository.findByEmail(email);
+        List<OrderItem> orderItemList = new ArrayList<>();
+
+        for (OrderDto orderDto : orderDtoList) {
+            Item item = itemRepository.findById(orderDto.getItemId())
+                    .orElseThrow(EntityNotFoundException::new);
+
+            OrderItem orderItem = OrderItem.createOrderItem(item, orderDto.getCount());
+            orderItemList.add(orderItem);
+        }
+
+        Order order = Order.createOrder(member, orderItemList);
+        orderRepository.save(order);
+
+        return order.getId();
     }
 
 }
